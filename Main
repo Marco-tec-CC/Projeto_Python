@@ -1,1 +1,67 @@
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import pickle
+import os
 
+ARQUIVO_LISTA = "lista_espera.pkl"
+
+def carregar_lista():
+    if os.path.exists(ARQUIVO_LISTA):
+        with open(ARQUIVO_LISTA, "rb") as f:
+            return pickle.load(f)
+    return []
+
+def salvar_lista(lista):
+    with open(ARQUIVO_LISTA, "wb") as f:
+        pickle.dump(lista, f)
+
+def atualizar_lista():
+    lista_box.delete(0, tk.END)
+    for i, nome in enumerate(lista_espera, start=1):
+        lista_box.insert(tk.END, f"{i}. {nome}")
+
+def adicionar_paciente():
+    nome = simpledialog.askstring("Adicionar Paciente", "Nome do paciente:")
+    if nome:
+        lista_espera.append(nome.strip())
+        salvar_lista(lista_espera)
+        atualizar_lista()
+
+def chamar_proximo():
+    if lista_espera:
+        proximo = lista_espera.pop(0)
+        messagebox.showinfo("Próximo Paciente", f"Chamando: {proximo}")
+        salvar_lista(lista_espera)
+        atualizar_lista()
+    else:
+        messagebox.showwarning("Lista vazia", "Nenhum paciente na lista.")
+
+def remover_paciente():
+    nome = simpledialog.askstring("Remover Paciente", "Nome do paciente a remover:")
+    if nome in lista_espera:
+        lista_espera.remove(nome)
+        salvar_lista(lista_espera)
+        atualizar_lista()
+        messagebox.showinfo("Removido", f"{nome} foi removido da lista.")
+    else:
+        messagebox.showerror("Erro", "Paciente não encontrado.")
+
+janela = tk.Tk()
+janela.title("Lista de Espera Hospitalar")
+janela.geometry("400x400")
+
+lista_espera = carregar_lista()
+
+frame = tk.Frame(janela)
+frame.pack(pady=10)
+
+tk.Button(frame, text="Adicionar Paciente", width=20, command=adicionar_paciente).pack(pady=5)
+tk.Button(frame, text="Chamar Próximo", width=20, command=chamar_proximo).pack(pady=5)
+tk.Button(frame, text="Remover Paciente", width=20, command=remover_paciente).pack(pady=5)
+
+lista_box = tk.Listbox(janela, width=50)
+lista_box.pack(pady=10)
+
+atualizar_lista()
+
+janela.mainloop()
