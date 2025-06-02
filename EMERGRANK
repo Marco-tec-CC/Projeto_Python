@@ -41,3 +41,13 @@ def exibir_fila(pacientes):
     print("\n📋 Fila de Atendimento Prioritária:\n")
     for i, p in enumerate(pacientes_ordenados, start=1):
         print(f"{i}. {p}")
+
+from fila import adicionar_pacientes, exibir_fila
+
+def main():
+    print("=== Sistema de Fila Hospitalar ===")
+    pacientes = adicionar_pacientes()
+    exibir_fila(pacientes)
+
+if __name__ == "__main__":
+    main()
