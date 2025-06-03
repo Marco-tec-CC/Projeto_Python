@@ -3,6 +3,22 @@ from tkinter import messagebox, simpledialog
 import pickle
 import os
 
+class Paciente:
+    def __init__(self, nome, idade, gravidade):
+        self.nome = nome
+        self.idade = idade
+        self.gravidade = gravidade
+
+    def __repr__(self):
+        return f'{self.nome} (Idade: {self.idade}, Gravidade: {self.gravidade})'
+
+prioridades = {
+    'vermelho': 1,
+    'amarelo': 2,
+    'verde': 3,
+    'azul': 4
+}
+
 ARQUIVO_LISTA = "lista_espera.pkl"
 
 def carregar_lista():
@@ -11,21 +27,38 @@ def carregar_lista():
             return pickle.load(f)
     return []
 
+def adicionar_paciente():
+    nome = simpledialog.askstring("Adicionar Paciente", "Nome do paciente:")
+    if not nome:
+        return
+
+    idade = simpledialog.askinteger("Idade", "Idade do paciente:")
+    if idade is None:
+        return
+
+    gravidade = simpledialog.askstring(
+        "Gravidade",
+        "Gravidade do paciente (vermelho, amarelo, verde ou azul):"
+    )
+    if not gravidade or gravidade.lower() not in prioridades:
+        messagebox.showerror("Erro", "Gravidade inválida.")
+        return
+
+    paciente = Paciente(nome.strip(), idade, gravidade.strip().lower())
+    lista_espera.append(paciente)
+    lista_espera.sort(key=lambda p: prioridades[p.gravidade])  # 🧠 ordena pela prioridade
+    salvar_lista(lista_espera)
+    atualizar_lista()
+
 def salvar_lista(lista):
     with open(ARQUIVO_LISTA, "wb") as f:
         pickle.dump(lista, f)
 
 def atualizar_lista():
     lista_box.delete(0, tk.END)
-    for i, nome in enumerate(lista_espera, start=1):
-        lista_box.insert(tk.END, f"{i}. {nome}")
+    for i, paciente in enumerate(lista_espera, start=1):
+        lista_box.insert(tk.END, f"{i}. {paciente}")
 
-def adicionar_paciente():
-    nome = simpledialog.askstring("Adicionar Paciente", "Nome do paciente:")
-    if nome:
-        lista_espera.append(nome.strip())
-        salvar_lista(lista_espera)
-        atualizar_lista()
 
 def chamar_proximo():
     if lista_espera:
@@ -38,13 +71,18 @@ def chamar_proximo():
 
 def remover_paciente():
     nome = simpledialog.askstring("Remover Paciente", "Nome do paciente a remover:")
-    if nome in lista_espera:
-        lista_espera.remove(nome)
-        salvar_lista(lista_espera)
-        atualizar_lista()
-        messagebox.showinfo("Removido", f"{nome} foi removido da lista.")
-    else:
-        messagebox.showerror("Erro", "Paciente não encontrado.")
+    if not nome:
+        return
+
+    for paciente in lista_espera:
+        if paciente.nome.lower() == nome.strip().lower():
+            lista_espera.remove(paciente)
+            salvar_lista(lista_espera)
+            atualizar_lista()
+            messagebox.showinfo("Removido", f"{paciente.nome} foi removido da lista.")
+            return
+
+    messagebox.showerror("Erro", "Paciente não encontrado.")
 
 janela = tk.Tk()
 janela.title("Lista de Espera Hospitalar")
